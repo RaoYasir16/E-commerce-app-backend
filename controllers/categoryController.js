@@ -1,4 +1,7 @@
+const path = require("path");
+const fs = require("fs")
 const Category = require("../models/categoryModel")
+const Product = require("../models/productModel");
 
 
 //Add Category 
@@ -115,29 +118,57 @@ const updateCategory = async(req,res)=>{
 }
 
 //Delete Category by ID
-const deleteCategory = async(req,res)=>{
+const deleteCategory = async (req, res) => {
     try {
-        const categoryId = req.params.id
+        const categoryId = req.params.id;
 
+  
         const category = await Category.findById(categoryId);
-        if(!category){
+        if (!category) {
             return res.status(403).json({
-                message:"Category Not Found"
+                message: "Category Not Found"
             });
         }
 
-        await Category.findByIdAndDelete(
-            categoryId
-        );
+
+        const products = await Product.find({ category_id: categoryId });
+
+        if (products.length === 0) {
+            return res.status(404).json({
+                message: "No products found for this category"
+            });
+        }
+
+        for (const product of products) {
+            const imagePath = product.image_path;
+            if (imagePath) {
+            
+                if (imagePath.includes('/uploads/')) {
+                    const imageFileName = imagePath.split('/uploads/')[1]; 
+                    const fullImagePath = path.join(__dirname, "../uploads", imageFileName); 
+
+                        fs.unlinkSync(fullImagePath);
+
+                }
+            }
+        }
+
+        // Delete all products related to the category
+        await Product.deleteMany({ category_id: categoryId });
+
+        // Finally, delete the category
+        await Category.findByIdAndDelete(categoryId);
 
         return res.status(200).json({
-            message:"Category Deleted Successfully",
-            category
-        })
+            message: "Category and related products deleted successfully"
+        });
     } catch (error) {
         return res.status(500).json({
-            message:error.message
-        })
+            message: error.message
+        });
     }
-}
+};
+
+
+
 module.exports = {addCategory,getAllCategory,getSingleCategory,updateCategory,deleteCategory}
