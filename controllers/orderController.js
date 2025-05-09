@@ -1,7 +1,8 @@
 const Order = require("../models/orderModel");
-const Product = require("../models/productModel");
 const Cart = require("../models/addToCartModel");
 
+
+// Place order
 const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -39,6 +40,8 @@ const placeOrder = async (req, res) => {
     }
 };
 
+
+//Get only our orders
 const myOrder = async(req,res)=>{
     try {
         const userId = req.user.id
@@ -70,11 +73,22 @@ const myOrder = async(req,res)=>{
             message:error.message
         })
     }
-}
+};
 
+
+//Show all order on admin deashboard
 const showAllOrders = async(req,res)=>{
     try {
-        const allOrder = await Order.find();
+
+        let page = Number(req.query.page) || 1
+        let limit =Number(req.query.limit) || 5
+        let skip = (page - 1)*limit
+
+
+        const allOrder = await Order.find()
+        .skip(skip)
+        .limit(limit).populate("user_id")
+        .populate("products.product_id");
 
         if(allOrder.length == 0){
             return res.status(404).json({
@@ -91,6 +105,6 @@ const showAllOrders = async(req,res)=>{
             message:error.message
         })
     }
-}
+};
 
 module.exports = {placeOrder,myOrder,showAllOrders}

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {verifyToken,authorizeRole}= require("../middlewares/authMiddleware");
-const { placeOrder, myOrder, showAllOrders } = require("../controllers/orderController");
+const { placeOrder, myOrder, showAllOrders, } = require("../controllers/orderController");
 
 //user can place order
 router.post("/place-order",verifyToken,authorizeRole("user"),placeOrder);

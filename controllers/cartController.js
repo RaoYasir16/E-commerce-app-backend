@@ -42,7 +42,7 @@ const addToCart = async(req,res)=>{
 const viewAllCart = async(req,res)=>{
     try {
         const userId = req.user.id
-        const allCarts = await Cart.find({user_id:userId});
+        const allCarts = await Cart.find({user_id:userId}).populate("user_id").populate("product_id");
         if(allCarts.length == 0){
             return res.status(403).json({
                 message:"No item find in your cart"
@@ -88,4 +88,27 @@ const removeCart = async(req,res)=>{
     }
 }
 
-module.exports = {addToCart,viewAllCart,removeCart}
+
+//Show All carts on admin deashboard with user & product details
+const showAllCart = async(req,res)=>{
+    try {
+        
+        const allCarts = await Cart.find().populate("user_id").populate("product_id");
+
+        if(allCarts.length == 0){
+            return res.status(404).json({
+                message:"No cart found"
+            });
+        }
+
+        return res.status(200).json({
+            message:"All Cart fatched successfully",
+            allCarts
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message:error.message
+        })
+    }
+}
+module.exports = {addToCart,viewAllCart,removeCart,showAllCart}
